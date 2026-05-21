@@ -1,0 +1,28 @@
+id,task,category,status,priority,notes
+1,Create sales agent in sales-ai agent builder dashboard,Infrastructure,todo,P0,Set SALES_AGENT_ID in backend .env after creation
+2,Add APOLLO_API_KEY to backend .env,Infrastructure,todo,P0,Required before any lead search works
+3,Add NEVERBOUNCE_API_KEY to backend .env,Infrastructure,todo,P0,Required for email verification step
+4,Create Apollo discovery service (people search by title/industry/company size),Backend,todo,P0,services/discovery/apollo.py — uses Apollo /people/search endpoint
+5,Create Apollo enrichment service (get email for a person),Backend,todo,P0,services/enrichment/apollo.py — uses Apollo /people/match or /people/bulk_match
+6,Create NeverBounce verification service,Backend,todo,P0,services/verification/neverbounce.py — verify email before returning lead
+7,Create Lead Pydantic model,Backend,todo,P0,models/lead.py — name/title/company/email/score/signal_type/signal_context
+8,Create lead scoring logic,Backend,todo,P0,services/scoring.py — ICP fit 40% + intent signal 60% + multi-signal bonus
+9,Create outreach copy service,Backend,todo,P0,services/outreach.py — calls agent via agent_client with lead + signal context
+10,Build /leads/search POST endpoint,Backend,todo,P0,routes/leads.py — accepts product + ICP params triggers full pipeline
+11,Build /leads GET endpoint,Backend,todo,P1,routes/leads.py — list all leads from a campaign
+12,Wire leads router into app.py,Backend,todo,P0,Register leads router alongside existing chat router
+13,Add APOLLO_API_KEY and NEVERBOUNCE_API_KEY to settings.py,Backend,todo,P0,Add fields to Settings class in settings.py
+14,Build New Campaign page (product + ICP input form),Frontend,todo,P0,pages/NewCampaign.tsx — product name + target title + industry + company size
+15,Build Leads list page,Frontend,todo,P0,pages/Leads.tsx — scored lead cards sorted by score desc
+16,Build Lead detail page with outreach draft,Frontend,todo,P1,pages/LeadDetail.tsx — full profile + outreach email + copy button
+17,Add leads API calls to api.ts,Frontend,todo,P0,POST /leads/search and GET /leads
+18,Add Leads and New Campaign routes to App.tsx,Frontend,todo,P0,Wire new pages into router
+19,Add nav links to Layout.tsx sidebar,Frontend,todo,P0,New Campaign and Leads links
+20,Stub LinkedIn discovery service (no-op),Backend,todo,P2,services/discovery/linkedin.py — placeholder with interface ready for V2
+21,Stub Reddit discovery service (no-op),Backend,todo,P2,services/discovery/reddit.py — placeholder with interface ready for V2
+22,Stub Serper discovery service (no-op),Backend,todo,P2,services/discovery/serper.py — placeholder with interface ready for V2
+23,Add V2 API key placeholders to .env and settings.py,Backend,todo,P2,RAPIDAPI_KEY / REDDIT_CLIENT_ID + SECRET / SERPER_API_KEY
+24,Test full Apollo pipeline end-to-end,QA,todo,P0,product input → search → enrich → verify → outreach copy
+25,Handle Apollo rate limits and pagination,Backend,todo,P1,Retry logic + page through results if needed
+26,Dedupe logic for leads (same person from multiple sources),Backend,todo,P1,services/scoring.py — match on email or name+company
+27,Add Settings page showing API key status,Frontend,todo,P2,pages/Settings.tsx — green/red per key present in env

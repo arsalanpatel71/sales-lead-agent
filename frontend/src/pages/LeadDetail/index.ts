@@ -1,0 +1,1 @@
+export { LeadDetail } from './LeadDetail'

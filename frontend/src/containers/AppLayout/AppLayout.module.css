@@ -1,0 +1,82 @@
+.root {
+  display: flex;
+  height: 100vh;
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 20px;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-neutral-0);
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  padding-bottom: 4px;
+}
+
+.goldLine {
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-primary-400), transparent);
+  opacity: 0.5;
+}
+
+.silverLine {
+  margin-top: auto;
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-silver), transparent);
+  opacity: 0.4;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.navLink {
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: var(--text-base);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  transition: all 0.15s ease;
+  display: block;
+}
+.navLink:hover {
+  background: var(--color-primary-50);
+  color: var(--color-primary-500);
+}
+.active {
+  background: var(--color-primary-50);
+  color: var(--color-primary-500);
+  font-weight: 500;
+}
+
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px;
+  background: var(--color-bg-subtle);
+}
+
+/* Dashboard gets full bleed — no padding, no scroll at container level */
+.mainFull {
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+  position: relative;
+}
+
+/* Shrink main area when static chat panel is open */
+.mainWithChat {
+  padding-right: 360px;
+}

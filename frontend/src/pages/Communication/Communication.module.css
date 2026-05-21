@@ -1,0 +1,38 @@
+.page { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+.header { display: flex; flex-direction: column; gap: 4px; }
+
+.form { display: flex; flex-direction: column; gap: 16px; }
+
+.typeToggle {
+  display: flex;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+  width: fit-content;
+}
+
+.toggle {
+  padding: 8px 20px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: transparent;
+  transition: all 0.15s;
+}
+.toggle:hover { background: var(--color-primary-50); }
+.toggleActive {
+  background: var(--color-primary-50);
+  color: var(--color-primary-500);
+  border-bottom: 2px solid var(--color-primary-400);
+}
+
+.resultHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+
+.goldLine {
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-primary-400), transparent);
+  opacity: 0.3;
+}
+
+.scriptSections { display: flex; flex-direction: column; gap: 12px; }

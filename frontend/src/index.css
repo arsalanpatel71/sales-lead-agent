@@ -1,0 +1,56 @@
+@import './styles/colors.css';
+@import './styles/typography.css';
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg);
+  line-height: var(--leading-normal);
+}
+
+/* Gold divider line utility */
+.gold-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+}
+
+.silver-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-silver), transparent);
+}
+
+/* Shimmer / crystal surface */
+.crystal-surface {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 50%, #ffffff 100%);
+  border: 1px solid var(--color-border-silver);
+}
+
+/* Gold border card */
+.gold-card {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(212, 160, 23, 0.06), 0 4px 16px rgba(0,0,0,0.04);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
+
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; border: none; background: none; font-family: var(--font-body); }
+input, textarea { font-family: var(--font-body); }

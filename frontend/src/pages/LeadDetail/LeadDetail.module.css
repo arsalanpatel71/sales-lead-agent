@@ -1,0 +1,19 @@
+.page { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+
+.hero {}
+
+.heroTop { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+
+.scoreBlock { text-align: right; }
+
+.tags { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.outreachHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+
+.goldLine {
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-primary-400), transparent);
+  opacity: 0.3;
+}
+
+.empty { display: flex; align-items: center; justify-content: center; height: 200px; }
