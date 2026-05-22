@@ -33,14 +33,15 @@ async def run(
     session_id: str | None = None,
 ) -> tuple[list[Lead], str]:
     chat_id = str(uuid.uuid4())
+    agent_session = session_id or chat_id
     logger.info(
         "[leads] ═══ start | product=%r | max_leads=%d | chat_id=%s ═══",
         product, max_leads, chat_id,
     )
 
     apollo_leads, linkedin_leads = await asyncio.gather(
-        run_apollo(product, max_leads=max_leads, allow_no_email=allow_no_email, session_id=chat_id),
-        run_linkedin(product, session_id=chat_id),
+        run_apollo(product, max_leads=max_leads, allow_no_email=allow_no_email, session_id=agent_session),
+        run_linkedin(product, session_id=agent_session),
     )
 
     logger.info("[leads] apollo=%d | linkedin=%d", len(apollo_leads), len(linkedin_leads))

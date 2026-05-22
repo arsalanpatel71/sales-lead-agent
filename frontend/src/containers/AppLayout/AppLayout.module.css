@@ -5,37 +5,103 @@
   overflow: hidden;
 }
 
+/* ── Sidebar ───────────────────────────────── */
 .sidebar {
-  width: 220px;
+  width: 210px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  padding: 28px 20px;
+  padding: 16px 12px;
   border-right: 1px solid var(--color-border);
   background: var(--color-neutral-0);
-  gap: 16px;
+  gap: 10px;
+  transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
+.sidebarCollapsed {
+  width: 52px;
+}
+
+/* ── Header row (brand + toggle) ──────────── */
+.sidebarHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-height: 38px;
+}
+
+.sidebarCollapsed .sidebarHeader {
+  justify-content: center;
+  align-items: center;
+}
+
+/* ── Brand ────────────────────────────────── */
 .brand {
   display: flex;
-  gap: 6px;
-  align-items: baseline;
-  padding-bottom: 4px;
+  flex-direction: column;
+  gap: 2px;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
+.companyName {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.logoName {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(105deg, #ffffff 0%, #e8c87a 40%, #c0965a 70%, #a0a0a0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
+}
+
+/* ── Toggle button ────────────────────────── */
+.toggleBtn {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  margin-top: 2px;
+}
+.toggleBtn:hover {
+  border-color: var(--color-primary-400);
+  color: var(--color-primary-500);
+  background: var(--color-primary-50);
+}
+
+/* ── Dividers ─────────────────────────────── */
 .goldLine {
   height: 1px;
   background: linear-gradient(90deg, var(--color-primary-400), transparent);
   opacity: 0.5;
+  flex-shrink: 0;
 }
 
 .silverLine {
-  margin-top: auto;
   height: 1px;
   background: linear-gradient(90deg, var(--color-silver), transparent);
   opacity: 0.4;
+  flex-shrink: 0;
 }
 
+/* ── Nav ──────────────────────────────────── */
 .nav {
   display: flex;
   flex-direction: column;
@@ -43,13 +109,16 @@
 }
 
 .navLink {
-  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
   border-radius: 8px;
-  font-size: var(--text-base);
+  font-size: 13px;
   font-weight: 400;
   color: var(--color-text-secondary);
-  transition: all 0.15s ease;
-  display: block;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
 }
 .navLink:hover {
   background: var(--color-primary-50);
@@ -61,6 +130,53 @@
   font-weight: 500;
 }
 
+.sidebarCollapsed .navLink {
+  justify-content: center;
+  padding: 9px 0;
+  gap: 0;
+}
+
+.navIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Start New Chat ───────────────────────── */
+.newChatBtn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px dashed var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  white-space: nowrap;
+  font-family: var(--font-body);
+  width: 100%;
+}
+.newChatBtn:hover {
+  border-color: var(--color-primary-400);
+  color: var(--color-primary-500);
+  background: var(--color-primary-50);
+}
+
+.sidebarCollapsed .newChatBtn {
+  justify-content: center;
+  padding: 9px 0;
+  gap: 0;
+  width: 100%;
+}
+
+/* ── Main area ────────────────────────────── */
 .main {
   flex: 1;
   overflow-y: auto;
@@ -68,7 +184,6 @@
   background: var(--color-bg-subtle);
 }
 
-/* Dashboard gets full bleed — no padding, no scroll at container level */
 .mainFull {
   padding: 0;
   overflow: hidden;
@@ -76,7 +191,6 @@
   position: relative;
 }
 
-/* Shrink main area when static chat panel is open */
 .mainWithChat {
   padding-right: 360px;
 }

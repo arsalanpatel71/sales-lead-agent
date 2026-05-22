@@ -54,32 +54,18 @@ export interface CommunicationResponse {
   phone_script?: PhoneScriptOutput
 }
 
-export interface LeadsResponse {
+export interface LeadsSearchResponse {
   leads: Lead[]
   total: number
+  chat_id: string
 }
 
 export type SignalStrength = 'strong' | 'weak'
 export type CommunicationType = 'email' | 'phone_script'
-
 export type ChatMode = 'static' | 'floating'
 
 export interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
   content: string
-}
-
-export interface ChatRecord {
-  chat_id: string
-  session_id: string
-  product: string
-  created_at: string
-  lead_count: number
-}
-
-export interface LeadsSearchResponse {
-  leads: Lead[]
-  total: number
-  chat_id: string
 }

@@ -15,6 +15,7 @@ async def leads_search(req: LeadsSearchRequest):
             product=req.product,
             max_leads=req.max_leads,
             allow_no_email=req.allow_no_email,
+            session_id=req.session_id,
         )
     except AgentError as exc:
         raise HTTPException(status_code=502, detail=str(exc))

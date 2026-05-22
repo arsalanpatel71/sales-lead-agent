@@ -1,23 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Badge, Button, Card } from '../../components'
-import { Lead } from '../../types'
+import { useAppStore } from '../../store'
 import { scoreColor, signalLabel } from '../../utils/formatters'
 import styles from './LeadDetail.module.css'
 
 export function LeadDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [lead, setLead] = useState<Lead | null>(null)
+  const leads = useAppStore(s => s.leads)
+  const lead = leads.find(l => (l.lead_id ?? l.id) === id) ?? null
   const [copied, setCopied] = useState(false)
-
-  useEffect(() => {
-    const raw = sessionStorage.getItem('leads')
-    if (raw) {
-      const leads: Lead[] = JSON.parse(raw)
-      setLead(leads.find(l => l.id === id) ?? null)
-    }
-  }, [id])
 
   if (!lead) {
     return <div className={styles.empty}><p className="body-md">Lead not found.</p></div>

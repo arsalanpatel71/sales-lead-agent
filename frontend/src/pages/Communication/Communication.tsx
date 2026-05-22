@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Button, Card, Input } from '../../components'
-import { CommunicationResponse, Lead } from '../../types'
+import { CommunicationResponse } from '../../types'
+import { useAppStore } from '../../store'
 import { api } from '../../utils/api'
 import styles from './Communication.module.css'
 
@@ -9,7 +10,9 @@ export function Communication() {
   const [params] = useSearchParams()
   const leadId = params.get('leadId')
 
-  const [lead, setLead] = useState<Lead | null>(null)
+  const leads = useAppStore(s => s.leads)
+  const lead = leads.find(l => (l.lead_id ?? l.id) === leadId) ?? null
+
   const [product, setProduct] = useState('')
   const [whyBetter, setWhyBetter] = useState('')
   const [type, setType] = useState<'email' | 'phone_script'>('email')
@@ -17,16 +20,6 @@ export function Communication() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
-
-  useEffect(() => {
-    const raw = sessionStorage.getItem('leads')
-    const p = sessionStorage.getItem('product') ?? ''
-    setProduct(p)
-    if (raw && leadId) {
-      const leads: Lead[] = JSON.parse(raw)
-      setLead(leads.find(l => l.id === leadId) ?? null)
-    }
-  }, [leadId])
 
   async function generate() {
     setLoading(true)

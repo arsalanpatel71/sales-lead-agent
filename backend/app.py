@@ -45,15 +45,17 @@ app.include_router(test_router,          prefix="/test",          tags=["test"])
 class ChatRequest(BaseModel):
     message: str
     chat_id: str | None = None
+    session_id: str | None = None
 
 
 @app.post("/chat", tags=["chat"])
 async def chat(req: ChatRequest):
     chat_id = req.chat_id or str(uuid.uuid4())
+    session_id = req.session_id or chat_id
     result = await call_agent(
         agent_id=settings.sales_agent_id,
         message=req.message,
-        session_id=chat_id,
+        session_id=session_id,
     )
     return {**result, "chat_id": chat_id}
 

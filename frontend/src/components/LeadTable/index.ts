@@ -1,0 +1,1 @@
+export { LeadTable } from './LeadTable'
