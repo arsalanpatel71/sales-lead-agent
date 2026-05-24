@@ -1,19 +1,18 @@
 import logging
 import sys
-import uuid
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from apollo_module.endpoint import router as apollo_router
-from communication_module.endpoint import router as communication_router
-from leads_module.endpoint import router as leads_router
+from outreach_email_phone.endpoint import router as outreach_router
+from campaign.endpoint import router as campaign_router
 from linkedin_module.endpoint import router as linkedin_router
 from test_module.endpoint import router as test_router
-from utils.agent import call_agent
-from settings import settings
-from pydantic import BaseModel
+from db.client import connect_db, close_db
+from db.repository import get_chat_history, get_all_sessions
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -23,7 +22,17 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Sales Agent", version="0.2.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await connect_db()
+    logger.info("[db] connected")
+    yield
+    await close_db()
+    logger.info("[db] disconnected")
+
+
+app = FastAPI(title="Sales Agent", version="0.2.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,30 +43,24 @@ app.add_middleware(
 )
 
 # ── module routers
-app.include_router(leads_router,         prefix="/leads",         tags=["leads"])
-app.include_router(apollo_router,        prefix="/apollo",        tags=["apollo"])
-app.include_router(linkedin_router,      prefix="/linkedin",      tags=["linkedin"])
-app.include_router(communication_router, prefix="/communication", tags=["communication"])
-app.include_router(test_router,          prefix="/test",          tags=["test"])
+app.include_router(campaign_router,  prefix="/campaign",              tags=["campaign"])
+app.include_router(apollo_router,    prefix="/apollo",                tags=["apollo"])
+app.include_router(linkedin_router,  prefix="/linkedin",              tags=["linkedin"])
+app.include_router(outreach_router,  prefix="/outreach_email_phone",  tags=["outreach"])
+app.include_router(test_router,      prefix="/test",                  tags=["test"])
 
 
-# ── chat
-class ChatRequest(BaseModel):
-    message: str
-    chat_id: str | None = None
-    session_id: str | None = None
+# ── history
+@app.get("/history", tags=["history"])
+async def list_sessions():
+    sessions = await get_all_sessions()
+    return {"sessions": sessions}
 
 
-@app.post("/chat", tags=["chat"])
-async def chat(req: ChatRequest):
-    chat_id = req.chat_id or str(uuid.uuid4())
-    session_id = req.session_id or chat_id
-    result = await call_agent(
-        agent_id=settings.sales_agent_id,
-        message=req.message,
-        session_id=session_id,
-    )
-    return {**result, "chat_id": chat_id}
+@app.get("/history/{session_id}", tags=["history"])
+async def chat_history(session_id: str):
+    turns = await get_chat_history(session_id)
+    return {"session_id": session_id, "turns": turns}
 
 
 # ── middleware + handlers

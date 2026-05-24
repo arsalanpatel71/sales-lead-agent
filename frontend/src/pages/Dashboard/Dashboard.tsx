@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { OrbitLoader, LeadTable } from '../../components'
+import { OrbitLoader } from '../../components'
 import { LeadsSearchResponse } from '../../types'
 import { api } from '../../utils/api'
 import { useAppStore } from '../../store'
@@ -13,13 +13,11 @@ export function Dashboard() {
   const setProduct = useAppStore(s => s.setProduct)
   const phase = useAppStore(s => s.phase)
   const setPhase = useAppStore(s => s.setPhase)
-  const leads = useAppStore(s => s.leads)
   const setLeads = useAppStore(s => s.setLeads)
   const currentStep = useAppStore(s => s.currentStep)
   const setCurrentStep = useAppStore(s => s.setCurrentStep)
   const searchError = useAppStore(s => s.searchError)
   const setSearchError = useAppStore(s => s.setSearchError)
-  const chatId = useAppStore(s => s.chatId)
   const activateChat = useAppStore(s => s.activateChat)
   const addMessage = useAppStore(s => s.addMessage)
   const showChatPanel = useAppStore(s => s.showChatPanel)
@@ -51,7 +49,7 @@ export function Dashboard() {
     )
 
     try {
-      const data = (await api.searchLeads({ product: q, max_leads: 10, session_id: sessionId })) as LeadsSearchResponse
+      const data = (await api.searchLeads({ product: q, session_id: sessionId })) as LeadsSearchResponse
       clearInterval(stepTimer)
       if (stale()) return
       setCurrentStep(5)
@@ -59,7 +57,8 @@ export function Dashboard() {
       if (stale()) return
       activateChat(data.chat_id)
       setLeads(data.leads ?? [])
-      setPhase('results')
+      setPhase('idle')
+      navigate('/leads')
     } catch (e) {
       clearInterval(stepTimer)
       if (stale()) return
@@ -69,16 +68,16 @@ export function Dashboard() {
     }
   }
 
-  const isActive = phase !== 'idle'
+  const isLoading = phase === 'loading'
 
   return (
-    <div className={`${styles.root} ${isActive ? styles.rootActive : ''}`}>
+    <div className={styles.root}>
       <div className={styles.bg}>
         <div className={styles.bgGlow} />
         <div className={styles.bgGrid} />
       </div>
 
-      {!isActive && (
+      {!isLoading && (
         <div className={styles.idleLayout}>
           <div className={styles.hero}>
             <p className={styles.heroEyebrow}>SALES AGENT</p>
@@ -129,40 +128,11 @@ export function Dashboard() {
         </div>
       )}
 
-      {isActive && (
+      {isLoading && (
         <div className={styles.content} style={{ animation: 'dashFadeIn 0.4s ease both' }}>
-          {phase === 'loading' && (
-            <div className={styles.loaderWrapper}>
-              <OrbitLoader currentStep={currentStep} />
-            </div>
-          )}
-
-          {phase === 'results' && (
-            <div className={styles.results}>
-              <div className={styles.resultsHeader}>
-                <p className={styles.resultsLabel}>
-                  {leads.length} lead{leads.length !== 1 ? 's' : ''} found
-                </p>
-                <div className={styles.resultsActions}>
-                  <button
-                    className={styles.newSearchBtn}
-                    onClick={() => { setPhase('idle'); setLeads([]); hideChatPanel() }}
-                  >
-                    ← New search
-                  </button>
-                  <button
-                    className={styles.viewAllBtn}
-                    onClick={() =>
-                      navigate(`/leads?chat_id=${encodeURIComponent(chatId ?? '')}`)
-                    }
-                  >
-                    View all →
-                  </button>
-                </div>
-              </div>
-              <LeadTable leads={leads.slice(0, 9)} />
-            </div>
-          )}
+          <div className={styles.loaderWrapper}>
+            <OrbitLoader currentStep={currentStep} />
+          </div>
         </div>
       )}
     </div>

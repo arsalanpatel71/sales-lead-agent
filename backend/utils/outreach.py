@@ -83,7 +83,7 @@ async def write_outreach(
         f"Lead company: {company}"
     )
     try:
-        result = await call_agent(agent_id=settings.outreach_agent_id, message=message, session_id=session_id)
+        result = await call_agent(agent_id=settings.outreach_agent_id, message=message, session_id=session_id, timeout=400)
         outreach = _extract_outreach(result, name=name)
         if outreach:
             logger.info("[outreach] ✓ written for %s | subject=%r", name, outreach.subject)

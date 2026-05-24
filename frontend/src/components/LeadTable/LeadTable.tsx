@@ -16,6 +16,7 @@ export function LeadTable({ leads }: Props) {
         <tr>
           <th className={styles.th}>Name</th>
           <th className={styles.th}>Role</th>
+          <th className={styles.th}>Source</th>
           <th className={styles.th}>Signal</th>
           <th className={styles.th}>Score</th>
           <th className={styles.th}>Email</th>
@@ -39,6 +40,11 @@ export function LeadTable({ leads }: Props) {
             <td className={styles.td}>
               <span className={styles.role}>
                 {lead.title}{lead.company ? ` · ${lead.company}` : ''}
+              </span>
+            </td>
+            <td className={styles.td}>
+              <span className={`${styles.sourceBadge} ${lead.signal_type === 'linkedin_post' ? styles.linkedin : styles.apollo}`}>
+                {lead.signal_type === 'linkedin_post' ? 'LinkedIn' : 'Apollo'}
               </span>
             </td>
             <td className={styles.td}>

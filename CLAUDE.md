@@ -188,3 +188,78 @@ CRUNCHBASE_API_KEY=
 VITE_API_URL=http://localhost:8002
 VITE_WS_URL=ws://localhost:8002
 ```
+
+---
+
+## Pipeline Limits Reference
+
+There are three separate, independent layers of limits. Do not confuse them.
+
+### 1. ICP Agent — query generation
+**File:** `utils/icp.py`, controlled by the ICP Agent Builder prompt.
+
+The ICP agent receives the user's product query and returns structured JSON including `linkedin_intent_queries`. The agent prompt currently instructs it to generate **1 LinkedIn query**. This number is the multiplier for all downstream Apify calls — if you increase it to 3, you get 3× the Apify calls and 3× the posts.
+
+- **Where to change:** ICP Agent Builder instructions (not in code) — edit the prompt to say "Generate N queries".
+- `min_leads` is also extracted here if the user mentioned a count ("find me 20 leads"). If not mentioned, it is `null`.
+
+### 2. Apify — posts returned per query call
+**File:** `utils/apify.py` → `search_linkedin_posts()`
+**Setting:** `APIFY_RESULTS_PER_QUERY` env var (default: `1` in `settings.py`)
+
+One Apify HTTP call is made **per query** from step 1. The `limit` parameter on the Apify URL controls how many posts are returned per call.
+
+```
+total raw posts = number_of_queries × apify_results_per_query
+                = 1               × 1                       = 1  (current defaults)
+```
+
+- **Where to change:** Set `APIFY_RESULTS_PER_QUERY=N` in `.env` (default: `20`).
+- Apify timeout per call: **180 seconds**.
+
+### 3. Post filter agent — batch size and batch cap
+**File:** `utils/post_filter.py`
+
+After Apify returns posts, they are sent to the post-filter agent in batches to decide which are genuine buying signals.
+
+| Constant | Value | Meaning |
+|---|---|---|
+| `_BATCH_SIZE` | 20 | Posts per agent call |
+| `_MAX_BATCHES` | 5 | Max batches processed |
+| Effective cap | 100 posts | `_BATCH_SIZE × _MAX_BATCHES` |
+
+Posts beyond 100 are silently dropped. Increase `_MAX_BATCHES` if you raise Apify volume.
+
+### 4. LinkedIn service — people per company post
+**File:** `linkedin_module/service.py`
+
+When a filtered post comes from a **company** LinkedIn page (not a person), the service searches Apollo for ICP-matching people at that company.
+
+| Constant | Value | Meaning |
+|---|---|---|
+| `_MAX_PEOPLE_PER_COMPANY` | 3 | Apollo people search per company post |
+
+### 5. Apollo — pagination and per-page
+**File:** `apollo_module/service.py`
+
+Apollo is called in a loop until either `min_leads` is satisfied or `_MAX_PAGES` is exhausted.
+
+| Constant / Variable | Value | Meaning |
+|---|---|---|
+| `_MAX_PAGES` | 5 | Max Apollo pagination rounds |
+| `per_page` | `min(min_leads × 2, 50)` or `50` | Results requested per Apollo API call |
+| Apollo API hard cap | 50 | Apollo never returns more than 50 per page |
+| `min_leads` | from ICP agent or `null` | Loop exits when this many leads are found; `null` = run all `_MAX_PAGES` |
+
+Max raw results from Apollo: `_MAX_PAGES × per_page = 5 × 50 = 250` (before email filtering).
+
+### Full call budget (current defaults)
+```
+ICP agent:        1 call
+Apify:            1 call  (1 query × 1 result each)
+Post filter:      1 call  (≤20 posts → 1 batch)
+Apollo:           up to 5 pagination calls
+  └─ per lead:    1 enrich call + 1 NeverBounce call + 1 outreach agent call
+```
+
+Raising `APIFY_RESULTS_PER_QUERY` or the number of ICP queries is where the biggest volume gains are. Apollo is already near its practical ceiling at 5 pages × 50 results.

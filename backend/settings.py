@@ -5,8 +5,6 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     agent_builder_url: str = Field(alias="AGENT_BUILDER_URL")
     agent_builder_ws_url: str = Field(alias="AGENT_BUILDER_WS_URL")
-    sales_agent_id: str = Field(default="", alias="SALES__COMMUNICATION_WRITER_AGENT_ID")
-
     icp_agent_id: str = Field(alias="ICP_AGENT_ID")
     outreach_agent_id: str = Field(alias="OUTREACH_AGENT_ID")
     post_filter_linkedin_agent_id: str = Field(alias="POST_FILTER_FOR_LINKDIN_AGENT_ID")

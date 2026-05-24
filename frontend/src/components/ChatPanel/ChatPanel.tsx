@@ -31,7 +31,7 @@ export function ChatPanel() {
     inputRef.current?.focus()
   }
 
-  function onHeaderMouseDown(e: React.MouseEvent) {
+  function onDragMouseDown(e: React.MouseEvent) {
     if ((e.target as HTMLElement).closest('button')) return
     if (chatMode !== 'floating') return
     const el = cardRef.current!
@@ -56,16 +56,15 @@ export function ChatPanel() {
     e.preventDefault()
   }
 
+  const isBlocked = chatResponding || phase === 'loading'
+
   const messageList = (className: string) => (
     <div className={className}>
       {messages.length === 0 && (
-        <p className={styles.empty}>Ask the agent about your leads or product…</p>
+        <p className={styles.empty}>Ask me anything about your leads…</p>
       )}
       {messages.map(m => (
-        <div
-          key={m.id}
-          className={`${styles.msg} ${m.role === 'user' ? styles.userMsg : styles.assistantMsg}`}
-        >
+        <div key={m.id} className={`${styles.msg} ${m.role === 'user' ? styles.userMsg : styles.assistantMsg}`}>
           {m.content}
         </div>
       ))}
@@ -78,21 +77,23 @@ export function ChatPanel() {
     </div>
   )
 
-  const isBlocked = chatResponding || phase === 'loading'
-
   const inputRow = (
     <div className={styles.inputRow}>
       <input
         ref={inputRef}
         className={styles.chatInput}
-        placeholder={isBlocked ? 'Searching…' : 'Ask anything…'}
+        placeholder={isBlocked ? 'Working on it…' : 'Ask anything…'}
         value={input}
         onChange={e => setInput(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() } }}
         autoComplete="off"
         disabled={isBlocked}
       />
-      <button className={styles.sendBtn} onClick={submit} disabled={!input.trim() || isBlocked}>→</button>
+      <button className={styles.sendBtn} onClick={submit} disabled={!input.trim() || isBlocked}>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
     </div>
   )
 
@@ -100,10 +101,15 @@ export function ChatPanel() {
     return (
       <div className={styles.staticPanel}>
         <div className={styles.panelHeader}>
-          <span className={styles.panelTitle}>Agent Chat</span>
-          <div className={styles.headerActions}>
-            <button className={styles.iconBtn} onClick={() => setChatMode('floating')} title="Switch to floating">⊛</button>
+          <div className={styles.panelMeta}>
+            <span className={styles.onlineDot} />
+            <span className={styles.panelTitle}>Assistant</span>
           </div>
+          <button className={styles.iconBtn} onClick={() => setChatMode('floating')} title="Pop out">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <path d="M5 2H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V8M8 1h4m0 0v4m0-4L5.5 7.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
         </div>
         {messageList(styles.staticMessages)}
         {inputRow}
@@ -115,7 +121,7 @@ export function ChatPanel() {
     return (
       <button className={styles.pill} onClick={() => setMinimized(false)}>
         <span className={styles.pillDot} />
-        Agent
+        <span>Assistant</span>
         {messages.length > 0 && <span className={styles.pillBadge}>{messages.length}</span>}
       </button>
     )
@@ -127,13 +133,31 @@ export function ChatPanel() {
 
   return (
     <div ref={cardRef} className={styles.floatCard} style={floatStyle}>
-      <div className={styles.floatHeader} onMouseDown={onHeaderMouseDown}>
-        <span className={styles.floatTitle}>Agent</span>
-        <div className={styles.headerActions}>
-          <button className={styles.iconBtn} onClick={() => setChatMode('static')} title="Dock to panel">⊞</button>
-          <button className={styles.iconBtn} onClick={() => setMinimized(true)} title="Minimise">−</button>
-        </div>
+
+      {/* Invisible drag zone across full top */}
+      <div className={styles.dragZone} onMouseDown={onDragMouseDown} />
+
+      {/* Action buttons — top right, appear on hover */}
+      <div className={styles.floatActions}>
+        <button className={styles.floatBtn} onClick={() => setChatMode('static')} title="Dock">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <rect x="1" y="1" width="10" height="10" rx="2" stroke="currentColor" strokeWidth="1.4"/>
+            <path d="M1 4.5h10" stroke="currentColor" strokeWidth="1.4"/>
+          </svg>
+        </button>
+        <button className={styles.floatBtn} onClick={() => setMinimized(true)} title="Minimise">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2.5 6h7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+          </svg>
+        </button>
       </div>
+
+      {/* Online indicator + label — top left */}
+      <div className={styles.assistantMeta}>
+        <span className={styles.onlineDot} />
+        <span className={styles.assistantName}>Assistant</span>
+      </div>
+
       {messageList(styles.floatMessages)}
       {inputRow}
     </div>

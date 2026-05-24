@@ -194,6 +194,7 @@ async def _filter_batch(product: str, batch: list[dict], session_id: str | None 
             message=message,
             output_schema=_OUTPUT_SCHEMA,
             session_id=session_id,
+            timeout=400,
         )
         logger.info("[post_filter] ── RAW AGENT RESPONSE ──\n%s", result)
         kept = _extract_kept(result)

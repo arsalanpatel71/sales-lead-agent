@@ -1,6 +1,6 @@
 import logging
 
-from communication_module.models import (
+from outreach_email_phone.models import (
     CommunicationRequest,
     CommunicationResponse,
     EmailOutput,

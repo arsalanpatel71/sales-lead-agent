@@ -13,11 +13,11 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  searchLeads: (body: { product: string; max_leads?: number; allow_no_email?: boolean; session_id?: string }) =>
-    request('/leads/search', { method: 'POST', body: JSON.stringify(body) }),
+  searchLeads: (body: { product: string; allow_no_email?: boolean; session_id?: string }) =>
+    request('/campaign/search', { method: 'POST', body: JSON.stringify(body) }),
 
   generateCommunication: (body: object) =>
-    request('/communication/generate', { method: 'POST', body: JSON.stringify(body) }),
+    request('/outreach_email_phone/generate', { method: 'POST', body: JSON.stringify(body) }),
 
   chat: (body: { message: string; chat_id?: string; session_id?: string }) =>
     request('/chat', { method: 'POST', body: JSON.stringify(body) }),
