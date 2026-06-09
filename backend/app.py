@@ -10,6 +10,7 @@ from apollo_module.endpoint import router as apollo_router
 from outreach_email_phone.endpoint import router as outreach_router
 from campaign.endpoint import router as campaign_router
 from linkedin_module.endpoint import router as linkedin_router
+from orchestrator.endpoint import router as chat_router
 from test_module.endpoint import router as test_router
 from db.client import connect_db, close_db
 from db.repository import get_chat_history, get_all_sessions
@@ -43,6 +44,7 @@ app.add_middleware(
 )
 
 # ── module routers
+app.include_router(chat_router,      prefix="/chat",                  tags=["chat"])
 app.include_router(campaign_router,  prefix="/campaign",              tags=["campaign"])
 app.include_router(apollo_router,    prefix="/apollo",                tags=["apollo"])
 app.include_router(linkedin_router,  prefix="/linkedin",              tags=["linkedin"])
@@ -52,15 +54,14 @@ app.include_router(test_router,      prefix="/test",                  tags=["tes
 
 # ── history
 @app.get("/history", tags=["history"])
-async def list_sessions():
-    sessions = await get_all_sessions()
-    return {"sessions": sessions}
+async def list_sessions(page: int = 1, page_size: int = 10):
+    return await get_all_sessions(page=page, page_size=page_size)
 
 
 @app.get("/history/{session_id}", tags=["history"])
 async def chat_history(session_id: str):
-    turns = await get_chat_history(session_id)
-    return {"session_id": session_id, "turns": turns}
+    messages = await get_chat_history(session_id)
+    return {"session_id": session_id, "messages": messages}
 
 
 # ── middleware + handlers

@@ -54,10 +54,23 @@ export interface CommunicationResponse {
   phone_script?: PhoneScriptOutput
 }
 
-export interface LeadsSearchResponse {
-  leads: Lead[]
-  total: number
-  chat_id: string
+export type Intent = 'lead_search' | 'outreach' | 'conversation'
+
+export interface OutreachResult {
+  subject?: string
+  body?: string
+  personalization_hook?: string
+  [key: string]: unknown
+}
+
+export interface ChatResponse {
+  intent: Intent
+  response: string
+  session_id: string
+  leads?: Lead[]
+  total?: number
+  leads_id?: string
+  outreach?: OutreachResult | null
 }
 
 export type SignalStrength = 'strong' | 'weak'
@@ -68,4 +81,32 @@ export interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
   content: string
+  leadsId?: string
+  leadsCount?: number
+}
+
+// History / session types
+export interface SessionSummary {
+  session_id: string
+  title: string
+  lead_count: number
+  turn_count: number
+  created_at?: string
+  updated_at?: string
+}
+
+export interface SessionsPage {
+  items: SessionSummary[]
+  total: number
+  page: number
+  page_size: number
+  total_pages: number
+}
+
+export interface HistoryMessage {
+  role: 'user' | 'assistant'
+  content: string
+  leads_id?: string
+  leads_count?: number
+  created_at?: string
 }

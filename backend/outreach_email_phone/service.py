@@ -70,6 +70,10 @@ def _get_data(raw: dict) -> dict:
     """Extract the first usable dict from a raw agent response."""
     structured = raw.get("structured_output")
     if isinstance(structured, dict):
+        # The manager agent wraps the child agent's output under "data".
+        data = structured.get("data")
+        if isinstance(data, dict):
+            return data
         return structured
 
     for field in ("response", "content", "message", "output", "text", "answer"):
@@ -120,7 +124,7 @@ async def generate(req: CommunicationRequest) -> CommunicationResponse:
     if req.type == "email":
         message = _build_email_message(req)
         logger.info("[communication] generating email for %s @ %s", req.lead_name, req.lead_company)
-        raw = await call_agent(agent_id=settings.communication_agent_id, message=message, session_id=req.session_id)
+        raw = await call_agent(agent_id=settings.manager_agent_id, message=message, session_id=req.session_id, timeout=400)
         email = _parse_email(raw)
         if not email:
             logger.warning("[communication] could not parse email response")
@@ -129,7 +133,7 @@ async def generate(req: CommunicationRequest) -> CommunicationResponse:
     else:
         message = _build_phone_message(req)
         logger.info("[communication] generating phone script for %s @ %s", req.lead_name, req.lead_company)
-        raw = await call_agent(agent_id=settings.communication_agent_id, message=message, session_id=req.session_id)
+        raw = await call_agent(agent_id=settings.manager_agent_id, message=message, session_id=req.session_id, timeout=400)
         script = _parse_phone_script(raw)
         if not script:
             logger.warning("[communication] could not parse phone script response")

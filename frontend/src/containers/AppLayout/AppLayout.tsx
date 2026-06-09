@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { ChatPanel } from '../../components/ChatPanel'
 import { useAppStore } from '../../store'
+import { navigate as storeNavigate } from '../../utils/navigation'
 import styles from './AppLayout.module.css'
 
 const NAV = [
@@ -41,6 +42,16 @@ function ChevronIcon({ collapsed }: { collapsed: boolean }) {
   )
 }
 
+function relativeTime(iso?: string): string {
+  if (!iso) return ''
+  const diff = (Date.now() - new Date(iso).getTime()) / 1000
+  if (diff < 60) return 'just now'
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
+  if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}d ago`
+  return new Date(iso).toLocaleDateString()
+}
+
 export function AppLayout() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
@@ -51,17 +62,34 @@ export function AppLayout() {
   const chatPanelVisible = useAppStore(s => s.chatPanelVisible)
   const chatMode = useAppStore(s => s.chatMode)
   const resetSession = useAppStore(s => s.resetSession)
+  const sessions = useAppStore(s => s.sessions)
+  const sessionsPage = useAppStore(s => s.sessionsPage)
+  const sessionsTotalPages = useAppStore(s => s.sessionsTotalPages)
+  const sessionsLoading = useAppStore(s => s.sessionsLoading)
+  const loadSessions = useAppStore(s => s.loadSessions)
+  const loadSession = useAppStore(s => s.loadSession)
+
+  // Load history on mount
+  useEffect(() => { loadSessions(1) }, [loadSessions])
+
+  const isResultPage = pathname.startsWith('/leads') || pathname === '/lead' || pathname.startsWith('/outreach')
+  const showFloatingChat = chatPanelVisible && isResultPage
 
   function handleNewChat() {
     resetSession()
     navigate('/')
   }
 
+  async function handleSessionClick(sessionId: string) {
+    await loadSession(sessionId)
+    storeNavigate(`/chat/${sessionId}`)
+  }
+
   return (
     <div className={styles.root}>
       <aside className={`${styles.sidebar} ${collapsed ? styles.sidebarCollapsed : ''}`}>
 
-        {/* Header row: brand + toggle */}
+        {/* Brand + collapse toggle */}
         <div className={styles.sidebarHeader}>
           {!collapsed && (
             <div className={styles.brand}>
@@ -80,7 +108,7 @@ export function AppLayout() {
 
         <div className={styles.goldLine} />
 
-        {/* Nav */}
+        {/* Nav links */}
         <nav className={styles.nav}>
           {NAV.map(({ to, label, icon }) => (
             <NavLink
@@ -96,9 +124,7 @@ export function AppLayout() {
           ))}
         </nav>
 
-        <div className={styles.silverLine} />
-
-        {/* Start New Chat */}
+        {/* Start New Chat — sits right below the nav links */}
         <button
           className={styles.newChatBtn}
           onClick={handleNewChat}
@@ -112,13 +138,67 @@ export function AppLayout() {
           {!collapsed && <span>Start New Chat</span>}
         </button>
 
+        <div className={styles.silverLine} />
+
+        {/* History list — grows to fill remaining space */}
+        {!collapsed && (
+          <div className={styles.historyList}>
+            {sessionsLoading && <p className={styles.historyEmpty}>Loading…</p>}
+            {!sessionsLoading && sessions.length === 0 && (
+              <p className={styles.historyEmpty}>No past sessions yet.</p>
+            )}
+            {!sessionsLoading && sessions.map(s => (
+              <button
+                key={s.session_id}
+                className={styles.sessionItem}
+                onClick={() => handleSessionClick(s.session_id)}
+              >
+                <span className={styles.sessionTitle}>{s.title}</span>
+                <div className={styles.sessionMeta}>
+                  {s.lead_count > 0 && (
+                    <span className={styles.sessionBadge}>{s.lead_count} leads</span>
+                  )}
+                  <span className={styles.sessionTime}>{relativeTime(s.updated_at)}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Pagination — always pinned at the bottom */}
+        {!collapsed && sessionsTotalPages > 1 && (
+          <div className={styles.historyPagination}>
+            <button
+              className={styles.pageBtn}
+              onClick={() => loadSessions(sessionsPage - 1)}
+              disabled={sessionsPage <= 1 || sessionsLoading}
+              title="Previous page"
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M7.5 2L3.5 6L7.5 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <span className={styles.pageInfo}>{sessionsPage} / {sessionsTotalPages}</span>
+            <button
+              className={styles.pageBtn}
+              onClick={() => loadSessions(sessionsPage + 1)}
+              disabled={sessionsPage >= sessionsTotalPages || sessionsLoading}
+              title="Next page"
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M4.5 2L8.5 6L4.5 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
+        )}
+
       </aside>
 
-      <main className={`${styles.main} ${isHome ? styles.mainFull : ''} ${chatPanelVisible && chatMode === 'static' ? styles.mainWithChat : ''}`}>
+      <main className={`${styles.main} ${isHome ? styles.mainFull : ''} ${showFloatingChat && chatMode === 'static' ? styles.mainWithChat : ''}`}>
         <Outlet />
       </main>
 
-      {chatPanelVisible && <ChatPanel />}
+      {showFloatingChat && <ChatPanel />}
     </div>
   )
 }

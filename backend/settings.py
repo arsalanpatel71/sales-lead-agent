@@ -5,10 +5,8 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     agent_builder_url: str = Field(alias="AGENT_BUILDER_URL")
     agent_builder_ws_url: str = Field(alias="AGENT_BUILDER_WS_URL")
-    icp_agent_id: str = Field(alias="ICP_AGENT_ID")
-    outreach_agent_id: str = Field(alias="OUTREACH_AGENT_ID")
+    manager_agent_id: str = Field(default="7e1ca466-9b85-45b2-a998-c9273ba646c6", alias="MANAGER_AGENT_ID")
     post_filter_linkedin_agent_id: str = Field(alias="POST_FILTER_FOR_LINKDIN_AGENT_ID")
-    communication_agent_id: str = Field(default="", alias="SALES__COMMUNICATION_WRITER_AGENT_ID")
 
     apollo_io_base_url: str = Field(alias="APOLLO_IO_BASE_URL")
     apollo_io_api_key: str = Field(alias="APOLLO_IO_API_KEY")
@@ -26,7 +24,7 @@ class Settings(BaseSettings):
     mongodb_url: str = Field(default="mongodb://localhost:27017", alias="MONGODB_URL")
     db_name: str = Field(default="sales_agent", alias="DB_NAME")
 
-    model_config = {"env_file": ".env", "populate_by_name": True}
+    model_config = {"env_file": ".env", "populate_by_name": True, "extra": "ignore"}
 
 
 settings = Settings()

@@ -2,6 +2,7 @@ import logging
 from datetime import datetime, timezone
 
 from db.client import get_db
+from utils.pagination import page_params, paginated_response
 
 logger = logging.getLogger(__name__)
 
@@ -19,73 +20,85 @@ async def save_lead_result(leads_id: str, session_id: str, product: str, leads: 
     logger.info("[db] saved %d leads → lead_results[%s]", len(leads), leads_id)
 
 
-async def save_chat_turn(session_id: str, user_query: str, leads_id: str, lead_count: int = 0) -> None:
+async def save_message(
+    session_id: str,
+    role: str,
+    content: str,
+    leads_id: str | None = None,
+    leads_count: int = 0,
+) -> None:
     db = get_db()
-    turn = {
-        "user": user_query,
-        "assistant": f"leads_ref:{leads_id}",
-        "leads_id": leads_id,
-        "lead_count": lead_count,
+    msg: dict = {
+        "role": role,
+        "content": content,
         "created_at": datetime.now(timezone.utc),
     }
+    if leads_id:
+        msg["leads_id"] = leads_id
+        msg["leads_count"] = leads_count
+
     await db.chat_sessions.update_one(
         {"_id": session_id},
         {
-            "$push": {"messages": turn},
+            "$push": {"messages": msg},
             "$set": {"updated_at": datetime.now(timezone.utc)},
             "$setOnInsert": {"created_at": datetime.now(timezone.utc)},
         },
         upsert=True,
     )
-    logger.info("[db] saved chat turn → chat_sessions[%s]", session_id)
+    logger.info("[db] saved %s message → chat_sessions[%s]", role, session_id)
 
 
-async def get_all_sessions() -> list[dict]:
-    """Return all sessions sorted by most recent, metadata only (no lead payload)."""
+async def get_lead_result(leads_id: str) -> list[dict]:
     db = get_db()
-    result = []
-    cursor = db.chat_sessions.find({}, {"messages": 1, "created_at": 1, "updated_at": 1}).sort("updated_at", -1)
+    doc = await db.lead_results.find_one({"_id": leads_id})
+    if not doc:
+        return []
+    return doc.get("leads", [])
+
+
+async def get_all_sessions(page: int = 1, page_size: int = 10) -> dict:
+    db = get_db()
+    skip, limit = page_params(page, page_size)
+    total = await db.chat_sessions.count_documents({})
+    cursor = (
+        db.chat_sessions
+        .find({}, {"messages": 1, "created_at": 1, "updated_at": 1})
+        .sort("updated_at", -1)
+        .skip(skip)
+        .limit(limit)
+    )
+    items = []
     async for doc in cursor:
         messages = doc.get("messages", [])
-        product = messages[0]["user"] if messages else ""
-        lead_count = sum(m.get("lead_count", 0) for m in messages)
-        result.append({
+        title = next((m["content"] for m in messages if m.get("role") == "user"), "Untitled")
+        lead_count = sum(m.get("leads_count", 0) for m in messages if m.get("leads_id"))
+        items.append({
             "session_id": str(doc["_id"]),
-            "product": product,
+            "title": title[:100],
             "lead_count": lead_count,
             "turn_count": len(messages),
             "created_at": doc.get("created_at"),
             "updated_at": doc.get("updated_at"),
         })
-    return result
+    return paginated_response(items, total, page, page_size)
 
 
 async def get_chat_history(session_id: str) -> list[dict]:
-    """Return chat turns with leads_id resolved to full lead data."""
     db = get_db()
-
     session = await db.chat_sessions.find_one({"_id": session_id})
     if not session:
         return []
 
-    messages = session.get("messages", [])
-
-    # Collect all unique leads_ids to fetch in one query
-    leads_ids = list({m["leads_id"] for m in messages if m.get("leads_id")})
-    leads_by_id: dict[str, list] = {}
-    if leads_ids:
-        cursor = db.lead_results.find({"_id": {"$in": leads_ids}})
-        async for doc in cursor:
-            leads_by_id[doc["_id"]] = doc.get("leads", [])
-
     result = []
-    for m in messages:
-        leads_id = m.get("leads_id")
-        result.append({
-            "user": m["user"],
-            "leads_id": leads_id,
-            "leads": leads_by_id.get(leads_id, []),
+    for m in session.get("messages", []):
+        entry: dict = {
+            "role": m.get("role", "user"),
+            "content": m.get("content", ""),
             "created_at": m.get("created_at"),
-        })
-
+        }
+        if m.get("leads_id"):
+            entry["leads_id"] = m["leads_id"]
+            entry["leads_count"] = m.get("leads_count", 0)
+        result.append(entry)
     return result

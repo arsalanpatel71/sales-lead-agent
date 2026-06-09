@@ -7,20 +7,19 @@ logger = logging.getLogger(__name__)
 
 
 def _extract_icp(raw: dict) -> dict:
-    structured = raw.get("structured_output")
-    if isinstance(structured, dict):
-        return structured
-    if isinstance(structured, list) and structured and isinstance(structured[0], dict):
-        return structured[0]
-    logger.error("[icp] no structured_output in agent response — returning empty dict")
+    structured = raw.get("structured_output") or {}
+    data = structured.get("data")
+    if isinstance(data, dict):
+        return data
+    logger.error("[icp] no data in manager agent response — returning empty dict")
     return {}
 
 
 async def analyze_product(product: str, session_id: str | None = None) -> dict:
     logger.info("[icp] analyzing: %r", product)
     result = await call_agent(
-        agent_id=settings.icp_agent_id,
-        message=f"I want to sell: {product}",
+        agent_id=settings.manager_agent_id,
+        message=f"Find leads for this product or service: {product}",
         session_id=session_id,
         timeout=400,
     )

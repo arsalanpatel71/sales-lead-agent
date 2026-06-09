@@ -1,14 +1,14 @@
 import { useRef, useState, useEffect } from 'react'
 import { useAppStore } from '../../store'
+import { MessageBubble, TypingBubble } from '../MessageBubble'
 import styles from './ChatPanel.module.css'
 
 export function ChatPanel() {
   const chatMode = useAppStore(s => s.chatMode)
   const setChatMode = useAppStore(s => s.setChatMode)
   const messages = useAppStore(s => s.messages)
-  const chatResponding = useAppStore(s => s.chatResponding)
-  const sendChat = useAppStore(s => s.sendChat)
-  const phase = useAppStore(s => s.phase)
+  const responding = useAppStore(s => s.responding)
+  const send = useAppStore(s => s.send)
 
   const [input, setInput] = useState('')
   const [minimized, setMinimized] = useState(false)
@@ -21,13 +21,13 @@ export function ChatPanel() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, chatResponding])
+  }, [messages, responding])
 
   function submit() {
     const text = input.trim()
-    if (!text) return
+    if (!text || responding) return
     setInput('')
-    sendChat(text)
+    send(text)
     inputRef.current?.focus()
   }
 
@@ -56,23 +56,15 @@ export function ChatPanel() {
     e.preventDefault()
   }
 
-  const isBlocked = chatResponding || phase === 'loading'
-
   const messageList = (className: string) => (
     <div className={className}>
       {messages.length === 0 && (
         <p className={styles.empty}>Ask me anything about your leads…</p>
       )}
       {messages.map(m => (
-        <div key={m.id} className={`${styles.msg} ${m.role === 'user' ? styles.userMsg : styles.assistantMsg}`}>
-          {m.content}
-        </div>
+        <MessageBubble key={m.id} role={m.role} content={m.content} />
       ))}
-      {chatResponding && (
-        <div className={styles.typing}>
-          <span /><span /><span />
-        </div>
-      )}
+      {responding && <TypingBubble />}
       <div ref={messagesEndRef} />
     </div>
   )
@@ -82,14 +74,14 @@ export function ChatPanel() {
       <input
         ref={inputRef}
         className={styles.chatInput}
-        placeholder={isBlocked ? 'Working on it…' : 'Ask anything…'}
+        placeholder={responding ? 'Working on it…' : 'Ask anything…'}
         value={input}
         onChange={e => setInput(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() } }}
         autoComplete="off"
-        disabled={isBlocked}
+        disabled={responding}
       />
-      <button className={styles.sendBtn} onClick={submit} disabled={!input.trim() || isBlocked}>
+      <button className={styles.sendBtn} onClick={submit} disabled={!input.trim() || responding}>
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>

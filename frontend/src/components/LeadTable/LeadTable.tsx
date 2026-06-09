@@ -1,15 +1,14 @@
-import { useNavigate } from 'react-router-dom'
 import { Lead } from '../../types'
+import { navigate } from '../../utils/navigation'
 import { scoreColor, signalLabel } from '../../utils/formatters'
 import styles from './LeadTable.module.css'
 
 interface Props {
   leads: Lead[]
+  leadsId: string
 }
 
-export function LeadTable({ leads }: Props) {
-  const navigate = useNavigate()
-
+export function LeadTable({ leads, leadsId }: Props) {
   return (
     <table className={styles.table}>
       <thead>
@@ -27,7 +26,7 @@ export function LeadTable({ leads }: Props) {
           <tr
             key={lead.lead_id ?? lead.id}
             className={styles.row}
-            onClick={() => navigate(`/leads/${encodeURIComponent(lead.lead_id ?? lead.id)}`)}
+            onClick={() => navigate(`/lead?leads_id=${leadsId}&lead_id=${encodeURIComponent(lead.lead_id ?? lead.id)}`)}
           >
             <td className={styles.td}>
               <div className={styles.nameCell}>

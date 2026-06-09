@@ -1,15 +1,17 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { Badge, Button, Card } from '../../components'
 import { useAppStore } from '../../store'
+import { navigate } from '../../utils/navigation'
 import { scoreColor, signalLabel } from '../../utils/formatters'
 import styles from './LeadDetail.module.css'
 
 export function LeadDetail() {
-  const { id } = useParams()
-  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const leadsId = searchParams.get('leads_id') ?? ''
+  const leadId = searchParams.get('lead_id') ?? ''
   const leads = useAppStore(s => s.leads)
-  const lead = leads.find(l => (l.lead_id ?? l.id) === id) ?? null
+  const lead = leads.find(l => (l.lead_id ?? l.id) === leadId) ?? null
   const [copied, setCopied] = useState(false)
 
   if (!lead) {
@@ -24,7 +26,7 @@ export function LeadDetail() {
 
   return (
     <div className={styles.page}>
-      <Button variant="ghost" size="sm" onClick={() => navigate('/leads')}>← Back</Button>
+      <Button variant="ghost" size="sm" onClick={() => navigate(`/leads?leads_id=${leadsId}`)}>← Back</Button>
 
       <Card className={styles.hero}>
         <div className={styles.heroTop}>
@@ -69,7 +71,7 @@ export function LeadDetail() {
         </Card>
       )}
 
-      <Button onClick={() => navigate(`/communicate?leadId=${lead.id}`)}>
+      <Button onClick={() => navigate(`/communicate?leads_id=${leadsId}&lead_id=${leadId}`)}>
         Generate Email / Phone Script
       </Button>
     </div>
